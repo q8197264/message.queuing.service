@@ -28,9 +28,9 @@ trait producer
      *
      * @return null|string
      */
-    public function send(array $data, $routeingkey, $flags=AMQP_NOPARAM, array $attributes)
+    public function send(array $data, $routeingkey)
     {
-        register_shutdown_function(function(){
+        register_shutdown_function(function () {
             data::$connect->disconnect();
         });
 
@@ -43,7 +43,7 @@ trait producer
             'correlation_id' => $corr_id,
             'reply_to' => $callback_queue_name=data::$queue->getName(),
         ];
-var_dump($properties);
+
         //发布消息
         data::$channel->startTransaction();
         $res = '';
@@ -53,7 +53,8 @@ var_dump($properties);
         }
         data::$channel->commitTransaction();//提交事务
 
-        $this->consume(function($envelope, $queue)use($corr_id){
+        data::$queue->consume(function($envelope, $queue)use($corr_id)
+        {
             if ($envelope->getCorrelationId() == $corr_id) {
                 $msg = $envelope->getBody();
                 var_dump('Received Data: ' . $msg);

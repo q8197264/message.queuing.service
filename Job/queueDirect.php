@@ -11,14 +11,17 @@ $c = call_user_func($m, array(
 ));
 
 $c->setExchange('exDemoDirect', 'direct', AMQP_DURABLE | AMQP_AUTODELETE)->addQueue('queueDirect', 'demokey', AMQP_DURABLE | AMQP_AUTODELETE)
-    ->consume(function ($envelope, $queue) {
+    ->consume(function ($envelope, $queue) use ($exchange) {
 
     //取出消息
     $msg = $envelope->getBody();
 
     //todo your logic...
-    echo json_encode(call_user_func_array(array(new cy_demo,'get'), array('test0001', 1)));
+    //    echo json_encode(call_user_func_array(array(new cy_demo,'get'), array('test0001', 1)));
     echo mb_convert_encoding($msg, 'GBK', 'UTF-8'); //处理消息
+    $exchange->publish($msg, $envelope->getReplyTo(), AMQP_NOPARAM, array(
+        'correlation_id' => $envelope->getCorrelationId(),
+    ));
 
     //如果交换机类型是RPC, 需手动发送ACK应答
     echo '---'.$index = $envelope->getDeliveryTag();

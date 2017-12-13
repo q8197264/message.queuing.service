@@ -19,7 +19,7 @@ class push
         $this->appmodel->setExchange($exc, $extype, $exflags);
         return $this;
     }
-    public function addQueue($qkey='', $routekey, $queueflags)
+    public function addQueue($qkey = '', $routekey = null, $queueflags = null)
     {
         $this->appmodel->addQueue($qkey, $routekey, $queueflags);
 
@@ -29,6 +29,7 @@ class push
     public function send($data = '', $routeingkey = null)
     {
         $data = is_string($data) ? array($data) : $data;
+
         return $this->appmodel->send($data, $routeingkey);
     }
 }
