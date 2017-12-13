@@ -8,8 +8,36 @@ use Cache\App\queue\data\data;
  * Date: 2017/12/4
  * Time: 14:46
  */
+register_shutdown_function(function () {
+    data::$connect->disconnect();
+});
 trait producer
 {
+    public function rpc($request, $routingkey)
+    {
+        echo 4;
+        $this->addQueue();
+
+        $corr_id = uniqid();
+        $properties = array(
+            'correlation_id' => $corr_id,
+            'reply_to' => $callback_queue_name=data::$queue->getName(),
+        );
+
+        data::$exchange->publish($request, $routingkey, false, $properties);
+
+        data::$queue->consume(function($envelope, $queue)use($corr_id)
+        {
+            if ($envelope->getCorrelationId() == $corr_id) {
+                $msg = $envelope->getBody();
+                var_dump('Received Data: ' . $msg);
+                $queue->nack($envelope->getDeliveryTag());
+
+                return false;
+            }
+        });
+    }
+
     /**
      * @param array $data
      * @param       $routeingkey
@@ -28,43 +56,34 @@ trait producer
      *
      * @return null|string
      */
-    public function send(array $data, $routeingkey)
+    public function send($data, $routingkey)
     {
-        register_shutdown_function(function () {
-            data::$connect->disconnect();
-        });
-
         if (empty($data)) {
             return null;
         }
 
-        $corr_id = uniqid();
-        $properties = [
-            'correlation_id' => $corr_id,
-            'reply_to' => $callback_queue_name=data::$queue->getName(),
-        ];
-
         //发布消息
-        data::$channel->startTransaction();
+        $data = is_string($data) ? array($data) : $data;
+        if (count($data) > 1) {
+            //启动事务
+            data::$channel->startTransaction();
+            $res = $this->publish($data, $routingkey);
+            data::$channel->commitTransaction();
+        } else {
+            $res = $this->publish($data, $routingkey);
+        }
+
+        return $res;
+    }
+
+    private function publish($data, $routingkey)
+    {
         $res = '';
         foreach ($data as $k=>$v) {
             $v = is_string($v) ? $v : json_encode($v);
-            $res[$k] = data::$exchange->publish($v, $routeingkey, false, $properties);
+            $res[$k] = data::$exchange->publish($v, $routingkey);
         }
-        data::$channel->commitTransaction();//提交事务
 
-        data::$queue->consume(function($envelope, $queue)use($corr_id)
-        {
-            if ($envelope->getCorrelationId() == $corr_id) {
-                $msg = $envelope->getBody();
-                var_dump('Received Data: ' . $msg);
-                $queue->nack($envelope->getDeliveryTag());
-
-                return false;
-            }
-        });
-
-        //        $this->connect->disconnect();
         return $res;
     }
 

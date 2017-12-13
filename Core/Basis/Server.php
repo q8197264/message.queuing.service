@@ -41,7 +41,7 @@ class Server
         }
 
         $closure = function($obj) use ($method, $parameters) {
-            if (is_object($obj) && method_exists($obj, $method)) {
+            if ((is_object($obj) && method_exists($obj, $method)) or method_exists($obj, '__call')) {
                 return call_user_func_array(array($obj, $method), $parameters);
             } else {
                 throw new Exception('The method '.get_class($obj).'::'.$method.'() is not found');

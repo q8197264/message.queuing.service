@@ -26,10 +26,11 @@ class push
         return $this;
     }
 
-    public function send($data = '', $routeingkey = null)
+    public function __call($method, array $args)
     {
-        $data = is_string($data) ? array($data) : $data;
-
-        return $this->appmodel->send($data, $routeingkey);
+        if (in_array($method, array('send','rpc'))) {
+            return call_user_func_array(array($this->appmodel, $method), $args);
+        }
+        die('The method no exists');
     }
 }
