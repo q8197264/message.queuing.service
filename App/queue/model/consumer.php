@@ -20,7 +20,7 @@ trait consumer
      * @param string $routekey
      * @param int    $queueflags
      */
-    public function addQueue($queueName, $routingkey, $queueflags)
+    public function addQueue($queueName='', $routingkey='', $queueflags=null)
     {
         data::$routingkey = $routingkey;
         try {
@@ -42,12 +42,19 @@ trait consumer
      * 消费
      * @param $func
      */
-    public function consume($func)
+    public function consume($user_func)
     {
         $consume_tag = sprintf("%s_%s_%s", php_uname('n'), time(), getmypid());
         //$this->queue->consume(array($this, 'processMessage'), AMQP_AUTOACK); //自动ACK应答
-        data::$queue->consume($func, AMQP_NOPARAM, $consume_tag);
+        data::$queue->consume($this->closure($user_func), AMQP_NOPARAM, $consume_tag);
 
         data::$connect->disconnect();
+    }
+
+    private function closure($user_func)
+    {
+        return function($envelope, $queue)use($user_func) {
+            call_user_func($user_func, $envelope, $queue, data::$exchange);
+        };
     }
 }

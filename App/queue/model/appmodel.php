@@ -63,10 +63,10 @@ class appmodel extends Model
             try {
                 data::$exname   = $exname;
                 data::$exchange = new AMQPExchange(data::$channel);
-                data::$exchange->setName(data::$exname);
+                empty($exname) OR data::$exchange->setName(data::$exname);
                 empty($extype) OR data::$exchange->setType($extype);
                 empty($exflags) OR data::$exchange->setFlags($exflags);
-                data::$exchange->declareExchange();
+                empty($exname) OR data::$exchange->declareExchange();
             } catch(AMQPExchangeException $e) {
                 die('falgs change '.$e->getMessage());
             }

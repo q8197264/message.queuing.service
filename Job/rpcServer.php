@@ -2,15 +2,14 @@
 //任务队列消费端
 $m = require_once('../resque.php');
 $c = call_user_func($m, array(
-    //    'host'     => '192.168.10.185',
-    //    'port'     => '5672',
-    //    'login'    => 'yaofang',
-    //    'password' => 'yaofang',
-    //    'vhost'    => 'demo.cn',//虚拟机
+        'host'     => '127.0.0.1',
+        'port'     => '5672',
+        'login'    => 'yaofang',
+        'password' => 'yaofang',
+        'vhost'    => '/',//虚拟机
 ));
 
-$c->setExchange()->addQueue('queueDirect', 'demokey', AMQP_DURABLE | AMQP_AUTODELETE)
-    ->consume(function ($envelope, $queue) use ($exchange) {
+$c->setExchange()->addQueue('rpc_demokey', null, null)->consume(function ($envelope, $queue, $exchange) {
 
         //取出消息
         $msg = $envelope->getBody();

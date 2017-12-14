@@ -13,24 +13,25 @@ register_shutdown_function(function () {
 });
 trait producer
 {
-    public function rpc($request, $routingkey)
+    public function rpc($request, $routingkey, \Closure $user_func)
     {
-        echo 4;
-        $this->addQueue();
+        $this->addQueue('','', AMQP_EXCLUSIVE);//临时队列
 
         $corr_id = uniqid();
         $properties = array(
             'correlation_id' => $corr_id,
-            'reply_to' => $callback_queue_name=data::$queue->getName(),
+            'reply_to' => $callback_queue_name = data::$queue->getName(),
         );
 
-        data::$exchange->publish($request, $routingkey, false, $properties);
+        data::$exchange->publish($request, $routingkey, AMQP_NOPARAM, $properties);
 
-        data::$queue->consume(function($envelope, $queue)use($corr_id)
+        data::$queue->consume(function($envelope, $queue)use($user_func, $corr_id)
         {
             if ($envelope->getCorrelationId() == $corr_id) {
                 $msg = $envelope->getBody();
-                var_dump('Received Data: ' . $msg);
+
+                call_user_func($user_func, $queue->getName().':'.$msg);
+
                 $queue->nack($envelope->getDeliveryTag());
 
                 return false;

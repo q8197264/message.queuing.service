@@ -13,21 +13,15 @@ class pull
         $this->appmodel = $app->make('appmodel');
     }
 
-    public function setExchange($exc, $extype, $exflags)
+    public function setExchange($exc='', $extype='', $exflags=null)
     {
-        if (empty($exc) || empty($extype) || empty($exflags)) {
-            trigger_error('exchange args is null', E_USER_ERROR);
-        }
         $this->appmodel->setExchange($exc, $extype, $exflags);
 
         return $this;
     }
 
-    public function addQueue($qkey, $routekey, $queueflags)
+    public function addQueue($qkey='', $routekey='', $queueflags=null)
     {
-        if (empty($qkey)) {
-            trigger_error('queue name args is null', E_USER_ERROR);
-        }
         $this->appmodel->addQueue($qkey, $routekey, $queueflags);
 
         return $this;

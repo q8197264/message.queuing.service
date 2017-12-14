@@ -22,22 +22,23 @@ $client_queue->declareQueue();
 $callback_queue_name = $client_queue->getName();//rpc_queue
 
 $corr_id = uniqid();
-$properties = [
+$properties = array(
     'correlation_id' => $corr_id,
     'reply_to' => $callback_queue_name
-];
+);
 
 $exchange = new AMQPExchange($channel);
 $exchange->publish($num, 'rpc_queue', AMQP_NOPARAM, $properties);
 
+echo '<pre>';
 $client_queue->consume(function($envelope, $queue) use ($corr_id){
-    var_dump($envelope->getCorrelationId(), $corr_id);
+    var_dump($envelope->getCorrelationId().'=='.$corr_id);
     if ($envelope->getCorrelationId() == $corr_id) {
         $msg = $envelope->getBody();
 
-        $index = $envelope->getDeliveryTag();
-        var_dump($index.' Received Data: ' . $msg);
-        $queue->nack($index);
+        var_dump('Received Data: ' . $msg);
+
+        $queue->nack($envelope->getDeliveryTag());
         return false;
     }
 });

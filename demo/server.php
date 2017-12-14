@@ -55,18 +55,18 @@ $rpc_queue = new AMQPQueue($channel);
 $rpc_queue->setName($routing_key);
 $rpc_queue->declareQueue();
 
-$exchange = new AMQPExchange($channel);//可选
+$exchange = new AMQPExchange($channel);//创建默认交换机
 $rpc_queue->consume(function($envelope, $queue) use ($exchange){
     $num = intval($envelope->getBody());
     $response = fib($num);
-    $exchange->publish($response, $envelope->getReplyTo(), AMQP_NOPARAM, [
+    var_dump($response);
+    $exchange->publish($response, $envelope->getReplyTo(), AMQP_NOPARAM, array(
         'correlation_id' => $envelope->getCorrelationId(),
-    ]);
+    ));
 
-    echo $index = $envelope->getDeliveryTag();
+    $index = $envelope->getDeliveryTag();
     $queue->ack($index);
 });
-
 
 // 断开连接
 $connection->disconnect();

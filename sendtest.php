@@ -3,24 +3,18 @@ $resque = require_once('resque.php');
 
 //配置信息
 $model = call_user_func($resque, array(
-//    'host'     => 'localhost',
+    'host'     => 'localhost',
     'port'     => '5672',
     'login'    => 'yaofang',
     'password' => 'yaofang',
     'vhost'    => '/',//虚拟机
 ));
 
-$message = array(
-    "TEST MESSAGE! 测试消息！" . time(),
-    "TEST MESSAGE! 测试消息！" . time(),
-    "TEST MESSAGE! 测试消息！" . time(),
-    "TEST MESSAGE! 测试消息！" . time(),
-);
 echo '<pre>';
-//$rep = $model->setExchange('exDemoDirect', 'direct', AMQP_DURABLE | AMQP_AUTODELETE)->rpc($message, 'demokey')
-//    ->push();
-//print_r($rep);
-//exit();
+$model->setExchange()->rpc("rpc client MESSAGE! 测试消息！" . time(), 'rpc_demokey', function($msg){
+    echo $msg;
+})->push();
+exit();
 
 //需改变交换机或队列属性
 $rep = $model->setExchange('test.direct', 'direct', AMQP_DURABLE)->send($message, 'direct_queue')->push();
