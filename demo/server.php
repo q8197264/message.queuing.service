@@ -2,11 +2,12 @@
 /**
  * RPC服务端
  */
-register_shutdown_function(function(){
-    echo PHP_EOL.'close'.PHP_EOL;
-});
+
 
 /* linux */
+//register_shutdown_function(function(){
+//    echo PHP_EOL.'close'.PHP_EOL;
+//});
 //declare(ticks=1);
 ////信号处理函数
 //function sig_handler($signo)
@@ -35,11 +36,9 @@ register_shutdown_function(function(){
 //pcntl_signal(SIGHUP,  "sig_handler");
 //pcntl_signal(SIGINT,  "sig_handler");
 
-$routing_key = 'rpc_queue';
-
 // 建立TCP连接
 $connection = new AMQPConnection([
-                                     'host' => '192.168.10.185',
+                                     'host' => 'localhost',
                                      'port' => '5672',
                                      'vhost' => '/',
                                      'login' => 'admin',
@@ -48,22 +47,26 @@ $connection = new AMQPConnection([
 $connection->connect() or die("Cannot connect to the broker!\n");
 
 $channel = new AMQPChannel($connection);
+//多消费端时，当某个消息比较耗时处理中时，不再接收下一条消息，直到处理结束再继续接收,这段时间内的消息发往其它空闲的消费者
 $channel->setPrefetchCount(1);
 
-$server_queue = new AMQPQueue($channel);
-$server_queue->setName($routing_key);
-$server_queue->declareQueue();
+$routing_key = 'rpc_queue';//routing key必须与rpc队列同名
+$rpc_queue = new AMQPQueue($channel);
+$rpc_queue->setName($routing_key);
+$rpc_queue->declareQueue();
 
-$exchange = new AMQPExchange($channel);
-
-$server_queue->consume(function($envelope, $queue) use ($exchange){
+$exchange = new AMQPExchange($channel);//可选
+$rpc_queue->consume(function($envelope, $queue) use ($exchange){
     $num = intval($envelope->getBody());
     $response = fib($num);
     $exchange->publish($response, $envelope->getReplyTo(), AMQP_NOPARAM, [
         'correlation_id' => $envelope->getCorrelationId(),
     ]);
-    $queue->ack($envelope->getDeliveryTag());
+
+    echo $index = $envelope->getDeliveryTag();
+    $queue->ack($index);
 });
+
 
 // 断开连接
 $connection->disconnect();

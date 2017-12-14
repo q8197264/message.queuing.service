@@ -2,12 +2,11 @@
 /**
  * RPC客户端
  */
-$routing_key = 'rpc_queue';
-$num = empty($_GET['n']) ? mt_rand(6,100) : intval($_GET['n']);
+$num = empty($_GET['n']) ? $argv[1] : intval($_GET['n']);
 
 // 建立TCP连接
 $connection = new AMQPConnection([
-                                     'host' => '192.168.10.185',
+                                     'host' => 'localhost',
                                      'port' => '5672',
                                      'vhost' => '/',
                                      'login' => 'admin',
@@ -20,7 +19,7 @@ $channel = new AMQPChannel($connection);
 $client_queue = new AMQPQueue($channel);
 $client_queue->setFlags(AMQP_EXCLUSIVE);
 $client_queue->declareQueue();
-$callback_queue_name = $client_queue->getName();
+$callback_queue_name = $client_queue->getName();//rpc_queue
 
 $corr_id = uniqid();
 $properties = [
@@ -29,13 +28,16 @@ $properties = [
 ];
 
 $exchange = new AMQPExchange($channel);
-$exchange->publish($num, $routing_key, AMQP_NOPARAM, $properties);
+$exchange->publish($num, 'rpc_queue', AMQP_NOPARAM, $properties);
 
 $client_queue->consume(function($envelope, $queue) use ($corr_id){
+    var_dump($envelope->getCorrelationId(), $corr_id);
     if ($envelope->getCorrelationId() == $corr_id) {
         $msg = $envelope->getBody();
-        var_dump('Received Data: ' . $msg);
-        $queue->nack($envelope->getDeliveryTag());
+
+        $index = $envelope->getDeliveryTag();
+        var_dump($index.' Received Data: ' . $msg);
+        $queue->nack($index);
         return false;
     }
 });

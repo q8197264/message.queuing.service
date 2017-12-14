@@ -44,11 +44,9 @@ trait consumer
      */
     public function consume($func)
     {
-        while(true) {
-            $consume_tag = sprintf("%s_%s_%s", php_uname('n'), time(), getmypid());
-            //$this->queue->consume(array($this, 'processMessage'), AMQP_AUTOACK); //自动ACK应答
-            data::$queue->consume($func, AMQP_NOPARAM, $consume_tag);
-        }
+        $consume_tag = sprintf("%s_%s_%s", php_uname('n'), time(), getmypid());
+        //$this->queue->consume(array($this, 'processMessage'), AMQP_AUTOACK); //自动ACK应答
+        data::$queue->consume($func, AMQP_NOPARAM, $consume_tag);
 
         data::$connect->disconnect();
     }
