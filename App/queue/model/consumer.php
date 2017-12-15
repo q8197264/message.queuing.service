@@ -4,10 +4,11 @@ namespace Cache\App\queue\model;
 use AMQPQueue;
 use AMQPQueueException;
 
+use Closure;
 use Cache\App\queue\data\data;
 
 /**
- * Created by PhpStorm.
+ * 消费
  * User: Liu xiaoquan
  * Date: 2017/12/4
  * Time: 14:47
@@ -25,9 +26,7 @@ trait consumer
         data::$routingkey = $routingkey;
         try {
             data::$queue = new AMQPQueue(data::$channel);
-            if (!empty($queueName)) {
-                data::$queue->setName($queueName);
-            }
+            empty($queueName) OR data::$queue->setName($queueName);
             data::$queue->setFlags($queueflags);
             data::$queue->declareQueue();
             if (!empty($routingkey) && !empty(data::$exname)) {
@@ -42,13 +41,13 @@ trait consumer
      * 消费
      * @param $func
      */
-    public function consume($user_func)
+    public function consume(Closure $user_func)
     {
         $consume_tag = sprintf("%s_%s_%s", php_uname('n'), time(), getmypid());
         //$this->queue->consume(array($this, 'processMessage'), AMQP_AUTOACK); //自动ACK应答
         data::$queue->consume($this->closure($user_func), AMQP_NOPARAM, $consume_tag);
 
-        data::$connect->disconnect();
+        //data::$connect->disconnect();
     }
 
     private function closure($user_func)

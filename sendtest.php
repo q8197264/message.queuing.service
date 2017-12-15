@@ -3,19 +3,20 @@ $resque = require_once('resque.php');
 
 //配置信息
 $model = call_user_func($resque, array(
-    'host'     => 'localhost',
-    'port'     => '5672',
-    'login'    => 'yaofang',
-    'password' => 'yaofang',
-    'vhost'    => '/',//虚拟机
+//    'host'     => 'localhost',
+//    'port'     => '5672',
+//    'login'    => 'yaofang',
+//    'password' => 'yaofang',
+//    'vhost'    => '/',//虚拟机
 ));
 
 echo '<pre>';
-$model->setExchange()->rpc("rpc client MESSAGE! 测试消息！" . time(), 'rpc_demokey', function($msg){
-    echo $msg;
-})->push();
-exit();
-
+$message = array(
+    "fanout MESSAGE! 广播消息！" . time(),
+    "fanout MESSAGE! 广播消息！" . time(),
+    "fanout MESSAGE! 广播消息！" . time(),
+    "fanout MESSAGE! 广播消息！" . time(),
+);
 //需改变交换机或队列属性
 $rep = $model->setExchange('test.direct', 'direct', AMQP_DURABLE)->send($message, 'direct_queue')->push();
 print_r($rep);
@@ -37,3 +38,10 @@ $message = array(
 );
 $rep = $model->setExchange('exDemoTopic', 'topic', AMQP_DURABLE)->send($message, 'demo.key.topic')->push();
 print_r($rep);
+
+//rpc
+for ($i=0;$i<10;$i++) {
+    $model->setExchange()->rpc("rpc client MESSAGE! 测试消息！".time(), 'rpc_demokey', function($msg){
+        var_dump($msg);
+    })->push();
+}

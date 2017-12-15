@@ -11,7 +11,6 @@ use Cache\Core\Contracts\Basis\AppContainer;
 use Cache\Core\Model\Model;
 use Cache\App\queue\data\data;
 
-
 /**
  * Created by PhpStorm.
  * User: Liu xiaoquan
@@ -31,11 +30,16 @@ class appmodel extends Model
             try {
                 data::$connect = new AMQPConnection($config);
                 data::$connect->connect();
+                register_shutdown_function(function () {
+                    data::$connect->disconnect();
+                });
             } catch (AMQPConnectionException $e) {
                 die($e->getMessage());
             }
 
             data::$channel = new AMQPChannel(data::$connect);
+            var_dump(get_class_methods(data::$channel));
+            data::$channel->setPrefetchCount(1);
         }
     }
 
