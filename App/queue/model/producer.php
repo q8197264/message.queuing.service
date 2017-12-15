@@ -1,6 +1,7 @@
 <?php
 namespace Cache\App\queue\model;
 
+use Closure;
 use Cache\App\queue\data\data;
 /**
  * Created by PhpStorm.
@@ -8,14 +9,13 @@ use Cache\App\queue\data\data;
  * Date: 2017/12/4
  * Time: 14:46
  */
-register_shutdown_function(function () {
-    data::$connect->disconnect();
-});
 trait producer
 {
-    public function rpc($request, $routingkey, \Closure $user_func)
+    public function rpc($request, $routingkey, Closure $user_func)
     {
-        $this->addQueue('','', AMQP_EXCLUSIVE);//临时队列
+        if (empty(data::$queue)) {
+            $this->addQueue('','', AMQP_AUTODELETE);//创建临时回调队列|AMQP_EXCLUSIVE
+        }
 
         $corr_id = uniqid();
         $properties = array(
@@ -23,14 +23,16 @@ trait producer
             'reply_to' => $callback_queue_name = data::$queue->getName(),
         );
 
+        //push request
         data::$exchange->publish($request, $routingkey, AMQP_NOPARAM, $properties);
 
+        //pull reply
         data::$queue->consume(function($envelope, $queue)use($user_func, $corr_id)
         {
             if ($envelope->getCorrelationId() == $corr_id) {
                 $msg = $envelope->getBody();
 
-                call_user_func($user_func, $queue->getName().':'.$msg);
+                call_user_func($user_func, $msg);
 
                 $queue->nack($envelope->getDeliveryTag());
 
@@ -66,10 +68,15 @@ trait producer
         //发布消息
         $data = is_string($data) ? array($data) : $data;
         if (count($data) > 1) {
-            //启动事务
-            data::$channel->startTransaction();
+
+            //启动事务 (应答机制与事务不可共存同一channel)
+//            data::$channel->startTransaction();
             $res = $this->publish($data, $routingkey);
-            data::$channel->commitTransaction();
+//            if (in_array(0, $res)) {
+//                data::$channel->rollbackTransaction();
+//            }else {
+//                data::$channel->commitTransaction();
+//            }
         } else {
             $res = $this->publish($data, $routingkey);
         }
