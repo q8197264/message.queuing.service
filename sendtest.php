@@ -2,13 +2,7 @@
 $resque = require_once('resque.php');
 
 //配置信息
-$model = call_user_func($resque, array(
-//    'host'     => 'localhost',
-//    'port'     => '5672',
-//    'login'    => 'yaofang',
-//    'password' => 'yaofang',
-//    'vhost'    => '/',//虚拟机
-));
+$model = call_user_func($resque, array('vhost' => '/'));
 
 echo '<pre>';
 $message = array(

@@ -29,6 +29,7 @@ include(dirname( __DIR__ ) . '/Core/Common/Http.php');
 // autoload
 require_once(dirname( __DIR__ ) . '/Core/AutoLoader.php');
 \Cache\Core\AutoLoader::Register();
+\Cache\Core\AutoLoader::Register(dirname(__DIR__).'/App/queue/lib/');
 
 // container
 $app = require_once(dirname( __DIR__ ) . '/Bootstrap/AppContainer.php');
