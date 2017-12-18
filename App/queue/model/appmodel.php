@@ -1,11 +1,10 @@
 <?php
 namespace AmqpCall\model;
 
-use AMQPExchange;
-use AMQPExchangeException;
 use AmqpCall\data\data;
 use AmqpCall\lib\connection;
 use AmqpCall\lib\channel;
+use AMQPCall\lib\exchange;
 
 use Cache\Core\Contracts\Basis\AppContainer;
 use Cache\Core\Model\Model;
@@ -30,7 +29,7 @@ class appmodel extends Model
                 data::$connect->disconnect();
             });
 
-            data::$channel = channel::getChannel(data::$connect);
+            data::$channel = channel::getInstance(data::$connect);
 
         }
     }
@@ -42,19 +41,8 @@ class appmodel extends Model
      */
     public function setExchange($exname, $extype, $exflags)
     {
-        if (!password_verify(json_encode(func_get_args()), base64_decode(data::$excflag))) {
-            data::$excflag = base64_encode(password_hash(json_encode(func_get_args()), PASSWORD_BCRYPT));
-            try {
-                data::$exname   = $exname;
-                data::$exchange = new AMQPExchange(data::$channel);
-                empty($exname) OR data::$exchange->setName(data::$exname);
-                empty($extype) OR data::$exchange->setType($extype);
-                empty($exflags) OR data::$exchange->setFlags($exflags);
-                empty($exname) OR data::$exchange->declareExchange();
-            } catch(AMQPExchangeException $e) {
-                die('falgs change '.$e->getMessage());
-            }
-        }
+        data::$exname   = $exname;
+        data::$exchange = exchange::getInstance(data::$channel->getChannel())->getExchange($exname, $extype, $exflags);
     }
 
 }

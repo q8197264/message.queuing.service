@@ -25,7 +25,7 @@ trait consumer
     {
         data::$routingkey = $routingkey;
         try {
-            data::$queue = new AMQPQueue(data::$channel);
+            data::$queue = new AMQPQueue(data::$channel->getChannel());
             empty($queueName) OR data::$queue->setName($queueName);
             data::$queue->setFlags($queueflags);
             data::$queue->declareQueue();

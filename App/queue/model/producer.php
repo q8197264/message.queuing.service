@@ -22,10 +22,12 @@ trait producer
             'correlation_id' => $corr_id,
             'reply_to' => $callback_queue_name = data::$queue->getName(),
         );
-        data::$channel->startTransaction();
+
         //push request
+        data::$channel->begin();
         data::$exchange->publish($request, $routingkey, AMQP_NOPARAM, $properties);
-        data::$channel->commitTransaction();
+        data::$channel->commit();
+
         //pull reply
         data::$queue->consume(function($envelope, $queue)use($user_func, $corr_id)
         {
@@ -70,12 +72,12 @@ trait producer
         if (count($data) > 1) {
 
             //启动事务 (应答机制与事务不可共存同一channel)
-            data::$channel->startTransaction();
+            data::$channel->begin();
             $res = $this->publish($data, $routingkey);
             if (in_array(0, $res)) {
-                data::$channel->rollbackTransaction();
+                data::$channel->rollback();
             }else {
-                data::$channel->commitTransaction();
+                data::$channel->commit();
             }
         } else {
             $res = $this->publish($data, $routingkey);

@@ -12,7 +12,7 @@
 return array(
     '/'=>array(
         array(
-            'host'     => '192.168.10.185',
+            'host'     => '127.0.0.1',
             'port'     => '5672',
             'login'    => 'yaofang',
             'password' => 'yaofang',
