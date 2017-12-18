@@ -1,11 +1,11 @@
 <?php
-namespace Cache\App\queue\model;
+namespace AmqpCall\model;
 
 use AMQPQueue;
 use AMQPQueueException;
 
 use Closure;
-use Cache\App\queue\data\data;
+use AmqpCall\data\data;
 
 /**
  * 消费

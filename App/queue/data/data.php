@@ -1,5 +1,5 @@
 <?php
-namespace Cache\App\queue\data;
+namespace AmqpCall\data;
 /**
  * 数据类
  * User: Liu xiaoquan

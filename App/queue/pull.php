@@ -1,5 +1,5 @@
 <?php
-namespace Cache\App\queue;
+namespace AmqpCall;
 
 /**
  * Class pull

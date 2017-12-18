@@ -22,6 +22,8 @@ class Server
 
     public function __construct(AppContainer $app, $config, $workspace)
     {
+        \Cache\Core\AutoLoader::Register(dirname(dirname(__DIR__)).'/App/queue/');
+
         $this->app       = $app;
         $this->workspace = $workspace = $this->app['config']['app.workspace'][$workspace];
 

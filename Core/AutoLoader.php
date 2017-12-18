@@ -23,9 +23,9 @@ class AutoLoader
 
     function autoload( $className )
     {
-        if ( 0!==strpos($className, strstr(__NAMESPACE__,'\\',true))) {
-            return;
-        }
+//        if ( 0!==strpos($className, strstr(__NAMESPACE__,'\\',true))) {
+//            return;
+//        }
         if (is_file($file = str_replace('\\','/',$this->dir.strstr(trim($className,'\\'),'\\')).'.php')) {
             require($file);
         }

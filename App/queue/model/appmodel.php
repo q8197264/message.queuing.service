@@ -1,15 +1,14 @@
 <?php
-namespace Cache\App\queue\model;
+namespace AmqpCall\model;
 
-use AMQPConnection;
-use AMQPConnectionException;
-use AMQPChannel;
 use AMQPExchange;
 use AMQPExchangeException;
+use AmqpCall\data\data;
+use AmqpCall\lib\connection;
+use AmqpCall\lib\channel;
 
 use Cache\Core\Contracts\Basis\AppContainer;
 use Cache\Core\Model\Model;
-use Cache\App\queue\data\data;
 
 /**
  * Created by PhpStorm.
@@ -25,36 +24,16 @@ class appmodel extends Model
     //初始化方法
     protected function init(AppContainer $app, array $config)
     {
-        $config = $this->checkConfig($config);
         if (empty(data::$channel)) {
-            try {
-                data::$connect = new AMQPConnection($config);
-                data::$connect->connect();
-                register_shutdown_function(function () {
-                    data::$connect->disconnect();
-                });
-            } catch (AMQPConnectionException $e) {
-                die($e->getMessage());
-            }
+            data::$connect = connection::getInstance($app, $config);
+            register_shutdown_function(function () {
+                data::$connect->disconnect();
+            });
 
-            data::$channel = new AMQPChannel(data::$connect);
-            var_dump(get_class_methods(data::$channel));
-            data::$channel->setPrefetchCount(1);
+            data::$channel = channel::getChannel(data::$connect);
         }
     }
 
-    private function checkConfig(array $config)
-    {
-        if (empty($config)) {
-            return $this->app['config']['queue']['/'];
-        }
-
-        $config = isset($this->app['config']['queue'][$config['vhost']])
-            ? array_merge($this->app['config']['queue'][$config['vhost']], $config)
-            : array_merge($this->app['config']['queue']['/'], $config);
-
-        return $config;
-    }
 
     /**
      * 创建交换机

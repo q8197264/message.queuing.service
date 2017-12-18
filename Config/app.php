@@ -38,7 +38,7 @@ return array(
     */
     'workspace' => array(
         'demo' => 'Cache\App\demo',
-        'queue' => 'Cache\App\queue',
+        'queue' => 'AmqpCall',
     ),
 
 );

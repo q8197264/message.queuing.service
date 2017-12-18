@@ -1,8 +1,8 @@
 <?php
-namespace Cache\App\queue\model;
+namespace AmqpCall\model;
 
 use Closure;
-use Cache\App\queue\data\data;
+use AmqpCall\data\data;
 /**
  * Created by PhpStorm.
  * User: Liu xiaoquan
@@ -22,10 +22,10 @@ trait producer
             'correlation_id' => $corr_id,
             'reply_to' => $callback_queue_name = data::$queue->getName(),
         );
-
+        data::$channel->startTransaction();
         //push request
         data::$exchange->publish($request, $routingkey, AMQP_NOPARAM, $properties);
-
+        data::$channel->commitTransaction();
         //pull reply
         data::$queue->consume(function($envelope, $queue)use($user_func, $corr_id)
         {
@@ -70,13 +70,13 @@ trait producer
         if (count($data) > 1) {
 
             //启动事务 (应答机制与事务不可共存同一channel)
-//            data::$channel->startTransaction();
+            data::$channel->startTransaction();
             $res = $this->publish($data, $routingkey);
-//            if (in_array(0, $res)) {
-//                data::$channel->rollbackTransaction();
-//            }else {
-//                data::$channel->commitTransaction();
-//            }
+            if (in_array(0, $res)) {
+                data::$channel->rollbackTransaction();
+            }else {
+                data::$channel->commitTransaction();
+            }
         } else {
             $res = $this->publish($data, $routingkey);
         }
