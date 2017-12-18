@@ -1,9 +1,6 @@
 <?php
-<<<<<<< HEAD
 namespace AmqpCall\lib;
-=======
-namespace AmqpLib;
->>>>>>> origin/master
+
 
 use AMQPConnection;
 use AMQPChannel;

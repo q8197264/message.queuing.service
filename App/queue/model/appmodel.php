@@ -1,11 +1,6 @@
 <?php
 namespace AmqpCall\model;
 
-<<<<<<< HEAD
-=======
-use AmqpLib;
-use AMQPChannel;
->>>>>>> origin/master
 use AMQPExchange;
 use AMQPExchangeException;
 use AmqpCall\data\data;
@@ -30,20 +25,13 @@ class appmodel extends Model
     protected function init(AppContainer $app, array $config)
     {
         if (empty(data::$channel)) {
-<<<<<<< HEAD
             data::$connect = connection::getInstance($app, $config);
-=======
-            data::$connect = AmqpLib\connection::getInstance($app, $config);
->>>>>>> origin/master
             register_shutdown_function(function () {
                 data::$connect->disconnect();
             });
 
-<<<<<<< HEAD
             data::$channel = channel::getChannel(data::$connect);
-=======
-            data::$channel = AmqpLib\channel::getChannel(data::$connect);
->>>>>>> origin/master
+
         }
     }
 
