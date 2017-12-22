@@ -44,20 +44,8 @@ trait producer
     }
 
     /**
-     * @param array $data
-     * @param       $routeingkey
-     * @param int   $flags
-     * @param array $attributes content_type 	  	text/plain
-                                content_encoding 	  	NULL
-                                message_id 	  	NULL
-                                user_id 	  	NULL
-                                app_id 	  	NULL
-                                delivery_mode 	  	NULL
-                                priority 	  	NULL
-                                timestamp 	  	NULL
-                                expiration 	  	NULL
-                                type 	  	NULL
-                                reply_to 	  	NULL
+     * @param $data
+     * @param $routingkey
      *
      * @return null|string
      */
